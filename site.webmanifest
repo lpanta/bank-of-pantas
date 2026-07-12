@@ -1,6 +1,9 @@
 {
   "name": "Bank of Pantas",
   "short_name": "BoP",
+  "description": "Bank of Pantas family Progressive Web App",
+  "scope": "/bank-of-pantas/",
+  "start_url": "/bank-of-pantas/",
   "icons": [
     { "src": "android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
