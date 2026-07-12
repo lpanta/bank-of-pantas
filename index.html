@@ -162,9 +162,81 @@ body::before{
   65%{transform:scaleY(1.05) perspective(1200px) rotateX(1.2deg);filter:brightness(1.6)}
   100%{transform:scaleY(1) perspective(1200px) rotateX(1.2deg);filter:brightness(1)}
 }
+/* =========================
+   INTRO BANK OF PANTAS
+   ========================= */
+
+.intro-splash{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  animation:introSplashFade 5s ease-in-out forwards;
+}
+
+.intro-logo{
+  width:min(70vw,700px);
+  max-height:70vh;
+  object-fit:contain;
+  opacity:0;
+
+  filter:
+    drop-shadow(0 0 20px rgba(255,212,0,.7))
+    drop-shadow(0 0 40px rgba(255,212,0,.4));
+
+  animation:introLogoReveal 5s ease-in-out forwards;
+}
+
+@keyframes introSplashFade{
+  0%{
+    opacity:1;
+  }
+
+  85%{
+    opacity:1;
+  }
+
+  100%{
+    opacity:0;
+    visibility:hidden;
+  }
+}
+
+@keyframes introLogoReveal{
+
+  0%{
+    opacity:0;
+    transform:scale(.85);
+    filter:blur(8px);
+  }
+
+  20%{
+    opacity:1;
+    transform:scale(1);
+    filter:blur(0);
+  }
+
+  75%{
+    opacity:1;
+    transform:scale(1);
+    filter:blur(0);
+  }
+
+  100%{
+    opacity:0;
+    transform:scale(1.05);
+    filter:blur(8px);
+  }
+}
 </style>
 </head>
 <body>
+<div class="intro-splash" id="introSplash">
+<img src="BankOfPantas_rect2.png">
+</div>
+
 <div class="crt-shell">
   <div class="crt power-on" id="crt">
     <div class="scanline"></div>
@@ -408,7 +480,21 @@ fullscreenBtn.addEventListener('click',()=>{
 });
 document.addEventListener('click',()=>{initAudio();terminal.focus();},{once:true});
 setInterval(()=>{crt.style.filter=`brightness(${0.94+Math.random()*0.11}) contrast(${1+Math.random()*0.08})`;},120);
-boot();
+window.addEventListener('load',()=>{
+
+    setTimeout(()=>{
+
+        const splash=document.getElementById('introSplash');
+
+        if(splash){
+            splash.remove();
+        }
+
+        boot();
+
+    },5000);
+
+});
 </script>
 </body>
 </html>
