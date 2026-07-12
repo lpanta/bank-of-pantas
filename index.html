@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terminale CRT Deluxe</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#55ff88;
+  --green-soft:#00cc66;
+  --green-dark:#002b12;
+  --black:#000;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle at center,#031403 0%,#000 70%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  overflow:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at center,transparent 45%,rgba(0,0,0,.75) 100%);
+  pointer-events:none;
+}
+.crt-shell{
+  position:relative;
+  width:94%;
+  max-width:1450px;
+  height:92vh;
+  padding:22px;
+  border-radius:42px;
+  background:linear-gradient(145deg,#111,#020402 45%,#1a1a1a);
+  box-shadow:0 0 80px rgba(0,255,100,.16), inset 0 0 40px rgba(255,255,255,.05);
+}
+.crt{
+  position:relative;
+  width:100%;
+  height:100%;
+  background:#020d04;
+  border-radius:30px;
+  border:3px solid #0a3;
+  overflow:hidden;
+  color:var(--green);
+  font-family:'VT323',monospace;
+  text-shadow:0 0 5px #00ff66,0 0 12px #00ff66,0 0 28px rgba(0,255,100,.45);
+  animation:flicker .16s infinite alternate;
+  transform:perspective(1200px) rotateX(1.2deg);
+  filter:brightness(1);
+}
+.crt::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:8;
+  pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,transparent 3px,transparent 5px);
+  mix-blend-mode:screen;
+}
+.crt::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:9;
+  pointer-events:none;
+  background:radial-gradient(circle at center,transparent 48%,rgba(0,0,0,.42) 83%,rgba(0,0,0,.75) 100%);
+}
+.power-on{
+  animation:powerOn 1.6s ease-out both;
+}
+.scanline{
+  position:absolute;
+  left:0;
+  right:0;
+  height:140px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,120,.14),transparent);
+  animation:scan 7.5s linear infinite;
+  z-index:5;
+  pointer-events:none;
+}
+.header{
+  position:relative;
+  z-index:2;
+  padding:12px 18px;
+  background:linear-gradient(90deg,#002b00,#003b16,#002b00);
+  border-bottom:1px solid #0a3;
+  font-size:30px;
+  letter-spacing:2px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.fullscreen-btn{
+  font-family:'VT323',monospace;
+  font-size:24px;
+  color:var(--green);
+  background:#001f0d;
+  border:1px solid #0a3;
+  padding:2px 12px;
+  cursor:pointer;
+  text-shadow:0 0 6px #00ff66;
+}
+.fullscreen-btn:hover{background:#003b16}
+.content{
+  position:relative;
+  z-index:2;
+  padding:20px;
+  height:calc(100% - 64px);
+}
+.terminal-window{
+  width:100%;
+  height:calc(100% - 58px);
+  background:rgba(0,0,0,.88);
+  color:var(--green);
+  border:1px solid #0a3;
+  padding:14px;
+  overflow:auto;
+  font-size:32px;
+  line-height:1.05;
+  outline:none;
+  white-space:pre-wrap;
+  word-break:break-word;
+  box-shadow:inset 0 0 28px rgba(0,255,100,.12);
+}
+.terminal-window:focus{box-shadow:inset 0 0 34px rgba(0,255,100,.2),0 0 12px rgba(0,255,100,.18)}
+.line{min-height:34px}
+.prompt{color:#7dffaa}
+.input-line{display:inline}
+.cursor{
+  display:inline-block;
+  width:16px;
+  height:30px;
+  background:var(--green);
+  box-shadow:0 0 8px #00ff66,0 0 18px #00ff66;
+  transform:translateY(5px);
+  animation:blink 1s steps(1,end) infinite;
+}
+.ghost{
+  opacity:.22;
+  filter:blur(.6px);
+  transform:translateY(-1px);
+}
+.footer{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  color:#38d76e;
+  font-size:24px;
+}
+@keyframes blink{50%{opacity:0}}
+@keyframes flicker{0%{opacity:.965}45%{opacity:1}60%{opacity:.94}100%{opacity:.985}}
+@keyframes scan{from{transform:translateY(-160px)}to{transform:translateY(100vh)}}
+@keyframes powerOn{
+  0%{transform:scaleY(.02) perspective(1200px) rotateX(1.2deg);filter:brightness(10);opacity:.1}
+  35%{transform:scaleY(.02) perspective(1200px) rotateX(1.2deg);filter:brightness(6);opacity:1}
+  65%{transform:scaleY(1.05) perspective(1200px) rotateX(1.2deg);filter:brightness(1.6)}
+  100%{transform:scaleY(1) perspective(1200px) rotateX(1.2deg);filter:brightness(1)}
+}
+</style>
+</head>
+<body>
+<div class="crt-shell">
+  <div class="crt power-on" id="crt">
+    <div class="scanline"></div>
+    <div class="header">
+      <span>DEC VT100 // BANK OF PANTAS</span>
+      <button class="fullscreen-btn" id="fullscreenBtn">FULLSCREEN</button>
+    </div>
+    <div class="content">
+      <div id="terminal" class="terminal-window" tabindex="0" aria-label="Terminale interattivo"></div>
+      <div class="footer">
+        <span>COL 72 BELL ACTIVE</span>
+        <span id="status">CRT HUM: OFF</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const terminal=document.getElementById('terminal');
+const crt=document.getElementById('crt');
+const status=document.getElementById('status');
+const fullscreenBtn=document.getElementById('fullscreenBtn');
+let audioCtx=null;
+let humOsc=null;
+let humGain=null;
+let currentInput='';
+let acceptingInput=false;
+let waitStatusFinish=false;
+let bellArmed=true;
+const bootLines=[
+  'POWER ON',
+  'MEMORY TEST 0000-FFFF  OK',
+  'CRT PHOSPHOR ARRAY     OK',
+  'KEYBOARD INTERFACE     OK',
+  'SERIAL LINE 300 BAUD   OK',
+  'LOADING BASIC MONITOR  OK',
+  '',
+  'READY.',
+  'TYPE HELP FOR COMMANDS',
+  ''
+];
+const statusLinesDora=[
+  'ACCOUNT NAME: DORA',
+  'ACCOUNT NUMBER: 09-12-2019 / 20050110',
+  'STATEMENT PERIOD: 2026',
+  'DATE    DESCRIPTION / TRANSACTION       WITHDRAWALS     DEPOSITS        BALANCE',
+  'JAN 01  BROUGHT FORWARD                                              € 2,000.00',
+  'JAN 01  INTEREST ALLOWED 5%                             € 125.00     € 2,125.00',
+  'MAY 23  BY CASH DEPOSITS                                € 410.00     € 2,535.00',
+  'MAY 23  BY CASH DEPOSITS                              € 1,250.00     € 3,785.00',
+  ''
+];
+const statusLinesGuido=[
+  'ACCOUNT NAME: GUIDO',
+  'ACCOUNT NUMBER: 09-12-2019 / 20061205',
+  'STATEMENT PERIOD: 2026',
+  'DATE    DESCRIPTION / TRANSACTION       WITHDRAWALS     DEPOSITS        BALANCE',
+  'JAN 01  BROUGHT FORWARD                                               € -170.00',
+  'JAN 01  INTEREST CHARGED 5%                  € 6.50                   € -176.50',
+  'JAN 01  INTEREST REBATE                                   € 6.50      € -170.00',
+  'MAY 11  CHEQUE NO. 4421                    € 300.00                   € -470.00',
+  'JUL 02  BY CASH DEPOSITS                                 € 50.00      € -420.00',
+  'JUL 12  BY CASH DEPOSITS                                 € 25.00      € -395.00',
+  ''
+  ];
+const statusLinesLivia=[
+  'ACCOUNT NAME: LIVIA',
+  'ACCOUNT NUMBER: 14-05-2023 / 20030502',
+  'STATEMENT PERIOD: 2026',
+  'DATE    DESCRIPTION / TRANSACTION       WITHDRAWALS     DEPOSITS        BALANCE',
+  'JAN 01  BROUGHT FORWARD                                              € 2,200.00',
+  'MAY 06  INTEREST ALLOWED 5%                             € 100.00     € 2,300.00',
+  'MAY 06  BY CASH DEPOSIT                                 € 271.00     € 2,571.00',
+  ''
+];
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  humOsc=audioCtx.createOscillator();
+  humGain=audioCtx.createGain();
+  humOsc.type='sine';
+  humOsc.frequency.value=57;
+  humGain.gain.value=.018;
+  humOsc.connect(humGain).connect(audioCtx.destination);
+  humOsc.start();
+  status.textContent='CRT HUM: ON';
+}
+function clickSound(){
+  initAudio();
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  const filter=audioCtx.createBiquadFilter();
+  osc.type=Math.random()>.5?'square':'triangle';
+  osc.frequency.value=120+Math.random()*460;
+  filter.type='bandpass';
+  filter.frequency.value=900+Math.random()*1300;
+  gain.gain.setValueAtTime(.22,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.035+Math.random()*.025);
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime+.06);
+}
+function enterSound(){
+  initAudio();
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(180,audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(70,audioCtx.currentTime+.12);
+  gain.gain.setValueAtTime(.16,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.14);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime+.15);
+}
+function bellSound(){
+  initAudio();
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type='sine';
+  osc.frequency.value=880;
+  gain.gain.setValueAtTime(.24,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.22);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime+.24);
+}
+function tremor(){
+  crt.style.transform=`perspective(1200px) rotateX(1.2deg) translate(${(Math.random()-.5)*2.5}px,${(Math.random()-.5)*2.5}px)`;
+}
+function render(){
+  const existing=[...terminal.querySelectorAll('.history')].map(n=>n.outerHTML).join('');
+  terminal.innerHTML=existing+`<div class="line active"><span class="prompt">READY.&gt; </span><span class="input-line"></span><span class="cursor"></span></div>`;
+  terminal.querySelector('.input-line').textContent=currentInput;
+  terminal.scrollTop=terminal.scrollHeight;
+}
+function addHistory(text,ghost=false){
+  const div=document.createElement('div');
+  div.className='line history'+(ghost?' ghost':'');
+  div.textContent=text;
+  terminal.appendChild(div);
+  terminal.scrollTop=terminal.scrollHeight;
+}
+function printLine(text){
+	addHistory(text);
+
+}
+async function command(cmd){
+  const c=cmd.trim().toUpperCase();
+  if(!c)return;
+  if(c==='HELP'){
+    printLine('COMMANDS: HELP, CLS, DATE, WHOAMI, STATUS, LOGOFF');
+  }else if(c==='CLS'){
+    terminal.innerHTML='';
+  }else if(c==='DATE'){
+    printLine(new Date().toString().toUpperCase());
+  }else if(c==='WHOAMI'){
+    printLine('LOCAL OPERATOR / VT100 SESSION');
+  }else if(c==='STATUS'){
+    printLine('TYPE STATUS FOLLOWED BY ACCOUNT NAME');
+  }else if(c==='STATUS DORA'){
+    waitStatusFinish=true;
+	for(const line of statusLinesDora){
+    addHistory(line);
+    await new Promise(r=>setTimeout(r,140+Math.random()*220));
+    waitStatusFinish=false;
+	}
+	render();
+  }else if(c==='STATUS GUIDO'){
+    waitStatusFinish=true;
+    for(const line of statusLinesGuido){
+    addHistory(line);
+    await new Promise(r=>setTimeout(r,140+Math.random()*220));
+    waitStatusFinish=false;
+	}		
+	render();
+  }else if(c==='STATUS LIVIA'){
+    waitStatusFinish=true;
+    for(const line of statusLinesLivia){
+    addHistory(line);
+    await new Promise(r=>setTimeout(r,140+Math.random()*220));
+    waitStatusFinish=false;
+	render();
+	}		
+  }else if(c==='LOGOFF'){
+    printLine('SESSION TERMINATED. PRESS ANY KEY TO REOPEN.');
+  }else{
+    printLine('?SYNTAX ERROR');
+  }
+}
+async function boot(){
+  terminal.innerHTML='';
+  for(const line of bootLines){
+    addHistory(line);
+    await new Promise(r=>setTimeout(r,140+Math.random()*220));
+  }
+  acceptingInput=true;
+  render();
+  terminal.focus();
+}
+terminal.addEventListener('keydown',e=>{
+  initAudio();
+  if(!acceptingInput)return;
+  e.preventDefault();
+  tremor();
+  if(e.key==='Enter'){
+    enterSound();
+	addHistory('READY.> '+currentInput);
+    command(currentInput);
+    currentInput='';
+    bellArmed=true;
+	if (!waitStatusFinish){
+		render();
+	}
+    return;
+  }
+  if(e.key==='Backspace'){
+    clickSound();
+    currentInput=currentInput.slice(0,-1);
+    render();
+    return;
+  }
+  if(e.key.length===1){
+    clickSound();
+    currentInput+=e.key.toUpperCase();
+    if(currentInput.length>=72 && bellArmed){bellSound();bellArmed=false;}
+    if(currentInput.length<72)bellArmed=true;
+    const inputSpan=terminal.querySelector('.input-line');
+    const ghost=document.createElement('span');
+    ghost.className='ghost';
+    ghost.textContent=e.key.toUpperCase();
+    inputSpan.appendChild(ghost);
+    render();
+  }
+});
+fullscreenBtn.addEventListener('click',()=>{
+  initAudio();
+  const el=document.documentElement;
+  if(!document.fullscreenElement){el.requestFullscreen?.();}
+  else{document.exitFullscreen?.();}
+  terminal.focus();
+});
+document.addEventListener('click',()=>{initAudio();terminal.focus();},{once:true});
+setInterval(()=>{crt.style.filter=`brightness(${0.94+Math.random()*0.11}) contrast(${1+Math.random()*0.08})`;},120);
+boot();
+</script>
+</body>
+</html>
