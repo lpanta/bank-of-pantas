@@ -1,0 +1,95 @@
+
+<button id="audioBtn">Attiva terminale</button>
+
+<script>
+let audioCtx;
+let masterGain;
+
+function startCRTNoise() {
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.04; // volume generale
+    masterGain.connect(audioCtx.destination);
+
+    // Ronzio 50 Hz
+    const hum = audioCtx.createOscillator();
+    hum.type = 'sine';
+    hum.frequency.value = 50;
+
+    const humGain = audioCtx.createGain();
+    humGain.gain.value = 0.25;
+
+    hum.connect(humGain);
+    humGain.connect(masterGain);
+    hum.start();
+
+    // Armonica 100 Hz
+    const hum2 = audioCtx.createOscillator();
+    hum2.type = 'sine';
+    hum2.frequency.value = 100;
+
+    const hum2Gain = audioCtx.createGain();
+    hum2Gain.gain.value = 0.1;
+
+    hum2.connect(hum2Gain);
+    hum2Gain.connect(masterGain);
+    hum2.start();
+
+    // Fischio CRT
+    const whine = audioCtx.createOscillator();
+    whine.type = 'sine';
+    whine.frequency.value = 9500;
+
+    const whineGain = audioCtx.createGain();
+    whineGain.gain.value = 0.01;
+
+    whine.connect(whineGain);
+    whineGain.connect(masterGain);
+    whine.start();
+
+    // Rumore
+    const bufferSize = audioCtx.sampleRate * 2;
+    const buffer = audioCtx.createBuffer(
+        1,
+        bufferSize,
+        audioCtx.sampleRate
+    );
+
+    const data = buffer.getChannelData(0);
+
+    for(let i=0;i<bufferSize;i++){
+        data[i]=(Math.random()*2-1)*0.08;
+    }
+
+    const noise=audioCtx.createBufferSource();
+    noise.buffer=buffer;
+    noise.loop=true;
+
+    const noiseFilter=audioCtx.createBiquadFilter();
+    noiseFilter.type='lowpass';
+    noiseFilter.frequency.value=1200;
+
+    const noiseGain=audioCtx.createGain();
+    noiseGain.gain.value=0.08;
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+
+    noise.start();
+
+    // Leggera instabilità "elettronica"
+    setInterval(() => {
+        whine.frequency.setTargetAtTime(
+            9300 + Math.random()*500,
+            audioCtx.currentTime,
+            0.5
+        );
+    }, 2000);
+}
+
+document.getElementById("audioBtn")
+.addEventListener("click", startCRTNoise);
+</script>
